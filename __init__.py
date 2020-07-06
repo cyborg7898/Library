@@ -1,8 +1,12 @@
 from selenium import webdriver
+from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 import os
-from bs4 import BeautifulSoup
 import requests
 from pathlib import Path
 
@@ -22,17 +26,42 @@ def set_path(path):
 
 def download(song, artist = None, down_path = None, play_after_downloading = True):
     """Downloads the video to given directory"""
-    url=get_url(song,artist)
-        
-    if url:
-        if not down_path:
-            down_path = os.getcwd()
-        file = open("drpth.txt")
-        dripth = file.read()
-        dripth = dripth.strip()
+    
+    if not down_path:
+        down_path = os.getcwd()
+        #print(down_path)
+    file = open("drpth.txt")
+    dripth = file.read()
+    dripth = dripth.strip()
+    if artist:
+        song=song+ 'by' +artist
+    video=song
+    chromeOptions=Options()
+    chromeOptions.add_experimental_option("prefs",{"download.default_directory":down_path})
+    chromeOptions.add_argument("--headless")
+    driver=webdriver.Chrome(dripth,options=chromeOptions)
+    wait=WebDriverWait(driver,3)
+    presence = EC.presence_of_element_located   
+    visible = EC.visibility_of_element_located
+    driver.get("https://www.youtube.com/results?search_query=" + str(video))
+
+    wait.until(visible((By.ID, "video-title")))
+    driver.find_element_by_id("video-title").click()
+    print(driver.current_url)
+    url=driver.current_url
+    driver.get("https://ytmp3.cc/en13/")
+    #driver.maximize_window()   
+    driver.find_element_by_xpath("//*[@id='mp3']").click()
+    driver.find_element_by_xpath("//*[@id='input']").send_keys(url)
+    driver.find_element_by_xpath("//*[@id='submit']").click()
+    time.sleep(4)
+    driver.find_element_by_xpath('//*[@id="buttons"]/a[1]').click()
+
+
+    '''
         chromeOptions=Options()
         chromeOptions.add_experimental_option("prefs",{"download.default_directory":down_path})
-        #chromeOptions.add_argument("--headless")
+        chromeOptions.add_argument("--headless")
         driver=webdriver.Chrome(dripth,options=chromeOptions)
         driver.get("https://ytmp3.cc/en13/")
         driver.find_element_by_xpath("//*[@id='mp3']").click()
@@ -40,8 +69,9 @@ def download(song, artist = None, down_path = None, play_after_downloading = Tru
         driver.find_element_by_xpath("//*[@id='submit']").click()
         time.sleep(5)
         driver.find_element_by_xpath('//*[@id="buttons"]/a[1]').click()
-        old_lst = os.listdir(down_path)
-        while True:
+    '''
+    old_lst = os.listdir(down_path)
+    while True:
             new_lst = os.listdir(down_path)
                 
             if new_lst != old_lst:
@@ -54,41 +84,21 @@ def download(song, artist = None, down_path = None, play_after_downloading = Tru
                 if Path(song).suffix == '.mp3':
                     driver.quit()
                     if play_after_downloading:
+                        print("Song downloaded to :"down_path)
                         print("playing")
                         os.startfile(down_path+"/"+song)
                     return "Song downloaded"
                     break
-    
-def get_url(song, artist = None):
-    """Get url to the video with following song name"""
-    if artist:
-        song = song+" by "+artist
-        print(song)
-    song = song.replace(" ","%20")
-    try:
-        url = 'https://www.youtube.com/results?q=' + song
-        print(url)
-        headers={'user-agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
-        sc = requests.get(url)
-        time.sleep(1)
-        sctext = sc.text
-        time.sleep(1)
-        soup = BeautifulSoup(sctext)
-        songs = soup.findAll("div",{"class":"yt-lockup-video"})
-        song = songs[0].contents[0].contents[0].contents[0]
-        songurl = song["href"]
-        url = "https://www.youtube.com"+songurl
-        return(url)
-    except Exception as e:
-        print("url not found", e,"Try adding more lysics or Artist name")
+
 
 try:
     file = open("drpth.txt")
 
 except:
     file = open("drpth.txt","w")
-    print("Hello from the creator of <add name here>, do reposrt bug if any")
-    file.close()
+    print("Hello from the creator of Mudopy,Smit Parmar and Ankit Raj Mahapatra.Do report bug if any")
+    print("""You must download chromedriver and call mudopy.set_path("Path to chromedriver")""")
+file.close()
 
 
         
