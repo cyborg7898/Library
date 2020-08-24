@@ -46,7 +46,17 @@ def download(song, artist = None, down_path = None, play_after_downloading = Tru
     driver.get("https://www.youtube.com/results?search_query=" + str(video))
 
     wait.until(visible((By.ID, "video-title")))
-    driver.find_element_by_id("video-title").click()
+    try:
+        driver.find_element_by_xpath("//span[contains(@class,'style-scope ytd-badge-supported-renderer') and text()='Ad']")
+    except Exception as e:
+        ads=False
+    if ads:    
+        vid = driver.find_elements_by_id("video-title")
+        vid[1].click()
+    else:
+        vid = driver.find_elements_by_id("video-title")
+        vid[0].click()
+    #driver.find_element_by_id("video-title").click()
     print(driver.current_url)
     url=driver.current_url
     driver.get("https://ytmp3.cc/en13/")
@@ -56,20 +66,9 @@ def download(song, artist = None, down_path = None, play_after_downloading = Tru
     driver.find_element_by_xpath("//*[@id='submit']").click()
     time.sleep(4)
     driver.find_element_by_xpath('//*[@id="buttons"]/a[1]').click()
+    print("Downloading")
 
 
-    '''
-        chromeOptions=Options()
-        chromeOptions.add_experimental_option("prefs",{"download.default_directory":down_path})
-        chromeOptions.add_argument("--headless")
-        driver=webdriver.Chrome(dripth,options=chromeOptions)
-        driver.get("https://ytmp3.cc/en13/")
-        driver.find_element_by_xpath("//*[@id='mp3']").click()
-        driver.find_element_by_xpath("//*[@id='input']").send_keys(url)
-        driver.find_element_by_xpath("//*[@id='submit']").click()
-        time.sleep(5)
-        driver.find_element_by_xpath('//*[@id="buttons"]/a[1]').click()
-    '''
     old_lst = os.listdir(down_path)
     while True:
             new_lst = os.listdir(down_path)
@@ -84,7 +83,7 @@ def download(song, artist = None, down_path = None, play_after_downloading = Tru
                 if Path(song).suffix == '.mp3':
                     driver.quit()
                     if play_after_downloading:
-                        print("Song downloaded to :"down_path)
+                        print("Song downloaded to :"+down_path)
                         print("playing")
                         os.startfile(down_path+"/"+song)
                     return "Song downloaded"
@@ -97,8 +96,7 @@ try:
 except:
     file = open("drpth.txt","w")
     print("Hello from the creator of Mudopy,Smit Parmar and Ankit Raj Mahapatra.Do report bug if any")
-    print("""You must download chromedriver and call mudopy.set_path("Path to chromedriver")""")
-file.close()
+    file.close()
 
 
         
